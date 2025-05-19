@@ -9,7 +9,7 @@ import { Button } from "@/components/Button"
 import { Card } from "@/components/Card"
 import { Input } from "@/components/Input"
 import { Label } from "@/components/Label"
-import { registerSchema } from "./schema" // Import your zod schema
+import { registerSchema } from "@/lib/validation/register" // Import your zod schema
 
 type RegisterFormData = z.infer<typeof registerSchema> // Infer the form data type from the schema
 

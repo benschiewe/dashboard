@@ -10,7 +10,7 @@ import { Card } from "@/components/Card"
 import { Input } from "@/components/Input"
 import { Label } from "@/components/Label"
 import { registerSchema } from "@/lib/validation/register" // Import your zod schema
-import { useRouter } from "next/router"
+import { useRouter } from "next/navigation"
 
 type RegisterFormData = z.infer<typeof registerSchema> // Infer the form data type from the schema
 
@@ -37,7 +37,12 @@ export default function Example() {
       })
 
       if (!response.ok) {
-        alert("Failed to create account. Please try again.")
+        if (response.status === 409) {
+          const errorData = await response.json()
+          alert(errorData.message || "Conflict occurred. Please try again.")
+        } else {
+          alert("Failed to create account. Please try again.")
+        }
         return
       }
 

@@ -1,5 +1,5 @@
 import { db } from "@/lib/db"
-import { registerSchema } from "@/lib/validation/register"
+import { registerSchemaNoConfirm } from "@/lib/validation/register"
 import { hash } from "bcrypt"
 import { NextResponse } from "next/server"
 
@@ -10,7 +10,8 @@ export async function POST(req: Request) {
     const body = await req.json()
     console.log("Request body:", body) // Debug: Log the parsed request body
 
-    const { name, email, enumber, password } = registerSchema.parse(body)
+    const { name, email, enumber, password } =
+      registerSchemaNoConfirm.parse(body)
 
     console.log("Checking if email exists:", email) // Debug: Log email check
     const existingUserByEmail = await db.user.findUnique({

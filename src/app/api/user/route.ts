@@ -5,7 +5,7 @@ import { NextResponse } from "next/server"
 export async function POST(req: Request) {
   try {
     const body = await req.json()
-    const { email, username, password } = body
+    const { name, email, enumber, password } = body
 
     const existingUserByEmail = await db.user.findUnique({
       where: { email: email },
@@ -18,11 +18,11 @@ export async function POST(req: Request) {
       )
     }
 
-    const existingUserByUsername = await db.user.findUnique({
-      where: { username: username },
+    const existingUserByEnum = await db.user.findUnique({
+      where: { enumber: enumber },
     })
 
-    if (existingUserByUsername) {
+    if (existingUserByEnum) {
       return NextResponse.json(
         { user: null, message: "Username already exists" },
         { status: 409 },
@@ -33,8 +33,9 @@ export async function POST(req: Request) {
 
     const newUser = await db.user.create({
       data: {
-        username,
+        name,
         email,
+        enumber,
         password: hashedPassword,
       },
     })
@@ -47,9 +48,8 @@ export async function POST(req: Request) {
       { status: 201 },
     )
   } catch (error) {
-    console.error("Error in POST /api/user:", error)
     return NextResponse.json(
-      { error: "Internal Server Error" },
+      { message: "Internal Server Error" },
       { status: 500 },
     )
   }

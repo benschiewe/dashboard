@@ -1,19 +1,50 @@
-// Modify your layout / template file as follows to center login form across the screen
-
-// <html className"h-full"/>
-// <body className"h-full"/>
-
 "use client"
 
+import { zodResolver } from "@hookform/resolvers/zod"
 import { RiDonutChartFill } from "@remixicon/react"
+import { useForm } from "react-hook-form"
+import { z } from "zod"
 
 import { Button } from "@/components/Button"
 import { Card } from "@/components/Card"
-import { Checkbox } from "@/components/Checkbox"
 import { Input } from "@/components/Input"
 import { Label } from "@/components/Label"
+import { registerSchema } from "./schema" // Import your zod schema
+
+type RegisterFormData = z.infer<typeof registerSchema> // Infer the form data type from the schema
 
 export default function Example() {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<RegisterFormData>({
+    resolver: zodResolver(registerSchema), // Use zod schema for validation
+  })
+
+  const onSubmit = async (data: RegisterFormData) => {
+    const { confirmPassword, ...rest } = data // Exclude confirmPassword from the data to be sent
+    try {
+      const response = await fetch("/api/user", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(rest),
+      })
+
+      if (!response.ok) {
+        alert("Failed to create account. Please try again.")
+        return
+      }
+
+      alert("Account created successfully!")
+    } catch (error) {
+      console.error("Error submitting form:", error)
+      alert("An unexpected error occurred. Please try again.")
+    }
+  }
+
   return (
     <>
       <div className="flex min-h-screen flex-1 flex-col justify-center px-4 lg:px-6">
@@ -27,7 +58,11 @@ export default function Example() {
           </h3>
         </div>
         <Card className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-          <form action="#" method="post" className="space-y-4">
+          <form
+            onSubmit={handleSubmit(onSubmit)}
+            className="space-y-4"
+            noValidate
+          >
             <div>
               <Label htmlFor="name" className="font-medium">
                 Name
@@ -35,11 +70,15 @@ export default function Example() {
               <Input
                 type="text"
                 id="name"
-                name="name"
-                autoComplete="name"
+                {...register("name")}
                 placeholder="Name"
                 className="mt-2"
               />
+              {errors.name && (
+                <p className="mt-1 text-sm text-red-500">
+                  {errors.name.message}
+                </p>
+              )}
             </div>
             <div>
               <Label htmlFor="email" className="font-medium">
@@ -48,11 +87,32 @@ export default function Example() {
               <Input
                 type="email"
                 id="email"
-                name="email"
-                autoComplete="email"
+                {...register("email")}
                 placeholder="john@company.com"
                 className="mt-2"
               />
+              {errors.email && (
+                <p className="mt-1 text-sm text-red-500">
+                  {errors.email.message}
+                </p>
+              )}
+            </div>
+            <div>
+              <Label htmlFor="enumber" className="font-medium">
+                E-Number
+              </Label>
+              <Input
+                type="text"
+                id="enumber"
+                {...register("enumber")}
+                placeholder="e1234567"
+                className="mt-2"
+              />
+              {errors.enumber && (
+                <p className="mt-1 text-sm text-red-500">
+                  {errors.enumber.message}
+                </p>
+              )}
             </div>
             <div>
               <Label htmlFor="password" className="font-medium">
@@ -61,61 +121,42 @@ export default function Example() {
               <Input
                 type="password"
                 id="password"
-                name="password"
-                autoComplete="password"
+                {...register("password")}
                 placeholder="Password"
                 className="mt-2"
               />
+              {errors.password && (
+                <p className="mt-1 text-sm text-red-500">
+                  {errors.password.message}
+                </p>
+              )}
             </div>
             <div>
-              <Label htmlFor="confirm-password" className="font-medium">
+              <Label htmlFor="confirmPassword" className="font-medium">
                 Confirm password
               </Label>
               <Input
                 type="password"
-                id="confirm-password"
-                name="confirm-password"
-                autoComplete="confirm-password"
+                id="confirmPassword"
+                {...register("confirmPassword")}
                 placeholder="Password"
                 className="mt-2"
               />
-            </div>
-            <div className="mt-2 flex items-start">
-              <div className="flex h-6 items-center">
-                <Checkbox id="newsletter" name="newsletter" />
-              </div>
-              <Label
-                htmlFor="newsletter"
-                className="ml-3 leading-6 text-gray-500 dark:text-gray-500"
-              >
-                Sign up to our newsletter
-              </Label>
+              {errors.confirmPassword && (
+                <p className="mt-1 text-sm text-red-500">
+                  {errors.confirmPassword.message}
+                </p>
+              )}
             </div>
             <Button type="submit" className="mt-4 w-full">
               Create account
             </Button>
-            <p className="text-center text-xs text-gray-500 dark:text-gray-500">
-              By signing in, you agree to our{" "}
-              <a
-                href="#"
-                className="capitalize text-blue-500 hover:text-blue-600 dark:text-blue-500 hover:dark:text-blue-600"
-              >
-                Terms of use
-              </a>{" "}
-              and{" "}
-              <a
-                href="#"
-                className="capitalize text-blue-500 hover:text-blue-600 dark:text-blue-500 hover:dark:text-blue-600"
-              >
-                Privacy policy
-              </a>
-            </p>
           </form>
         </Card>
         <p className="mt-6 text-center text-sm text-gray-500 dark:text-gray-500">
           Already have an account?{" "}
           <a
-            href="#"
+            href="/login"
             className="font-medium text-blue-500 hover:text-blue-600 dark:text-blue-500 hover:dark:text-blue-600"
           >
             Sign in

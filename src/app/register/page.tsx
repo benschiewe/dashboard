@@ -10,6 +10,7 @@ import { Card } from "@/components/Card"
 import { Input } from "@/components/Input"
 import { Label } from "@/components/Label"
 import { registerSchema } from "@/lib/validation/register" // Import your zod schema
+import { useRouter } from "next/router"
 
 type RegisterFormData = z.infer<typeof registerSchema> // Infer the form data type from the schema
 
@@ -21,6 +22,8 @@ export default function Example() {
   } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema), // Use zod schema for validation
   })
+
+  const router = useRouter()
 
   const onSubmit = async (data: RegisterFormData) => {
     const { confirmPassword, ...rest } = data // Exclude confirmPassword from the data to be sent
@@ -39,6 +42,7 @@ export default function Example() {
       }
 
       alert("Account created successfully!")
+      router.push("/login")
     } catch (error) {
       console.error("Error submitting form:", error)
       alert("An unexpected error occurred. Please try again.")

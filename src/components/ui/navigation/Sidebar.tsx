@@ -25,23 +25,8 @@ const navigation = [
 
 const shortcuts = [
   {
-    name: "Add new user",
+    name: "Edit users",
     href: "/settings/users",
-    icon: RiLinkM,
-  },
-  {
-    name: "Workspace usage",
-    href: "/settings/billing#billing-overview",
-    icon: RiLinkM,
-  },
-  {
-    name: "Cost spend control",
-    href: "/settings/billing#cost-spend-control",
-    icon: RiLinkM,
-  },
-  {
-    name: "Overview – Rows written",
-    href: "/overview#usage-overview",
     icon: RiLinkM,
   },
 ] as const
@@ -62,9 +47,8 @@ export function Sidebar() {
           <Image
             src="/uni_logo.png"
             alt="Elmhurst University Logo"
-            width="120"
-            height="40"
-            layout="responsive"
+            width={150}
+            height={50}
           />
 
           <nav
@@ -128,9 +112,8 @@ export function Sidebar() {
         <Image
           src="/uni_logo.png"
           alt="Elmhurst University Logo"
-          width="120"
-          height="40"
-          layout="responsive"
+          width={150}
+          height={50}
         />
         <div className="flex items-center gap-1 sm:gap-2">
           <UserProfileMobile />

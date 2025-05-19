@@ -2,6 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod"
 import { RiDonutChartFill } from "@remixicon/react"
+import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 
@@ -24,9 +25,11 @@ export default function Example() {
   })
 
   const router = useRouter()
+  const [serverError, setServerError] = useState<string | null>(null) // State to track server error
 
   const onSubmit = async (data: RegisterFormData) => {
     const { confirmPassword, ...rest } = data // Exclude confirmPassword from the data to be sent
+    setServerError(null) // Reset server error before submission
     try {
       const response = await fetch("/api/user", {
         method: "POST",
@@ -39,9 +42,9 @@ export default function Example() {
       if (!response.ok) {
         if (response.status === 409) {
           const errorData = await response.json()
-          alert(errorData.message || "Conflict occurred. Please try again.")
+          setServerError(errorData.message || "Email already exists.") // Set server error
         } else {
-          alert("Failed to create account. Please try again.")
+          setServerError("Failed to create account. Please try again.")
         }
         return
       }
@@ -50,7 +53,7 @@ export default function Example() {
       router.push("/login")
     } catch (error) {
       console.error("Error submitting form:", error)
-      alert("An unexpected error occurred. Please try again.")
+      setServerError("An unexpected error occurred. Please try again.")
     }
   }
 
@@ -157,6 +160,9 @@ export default function Example() {
                 </p>
               )}
             </div>
+            {serverError && ( // Conditionally render the server error
+              <p className="text-sm text-red-500">{serverError}</p>
+            )}
             <Button type="submit" className="mt-4 w-full">
               Create account
             </Button>

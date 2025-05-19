@@ -32,23 +32,8 @@ const navigation = [
 
 const shortcuts = [
   {
-    name: "Add new user",
+    name: "Modify users",
     href: "/settings/users",
-    icon: RiLinkM,
-  },
-  {
-    name: "Workspace usage",
-    href: "/settings/billing#billing-overview",
-    icon: RiLinkM,
-  },
-  {
-    name: "Cost spend control",
-    href: "/settings/billing#cost-spend-control",
-    icon: RiLinkM,
-  },
-  {
-    name: "Overview – Rows written",
-    href: "/overview#usage-overview",
     icon: RiLinkM,
   },
 ] as const

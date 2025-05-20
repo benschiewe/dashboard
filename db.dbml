@@ -1,0 +1,73 @@
+Project elmcsis_dashboard {
+  database_type: "PostgreSQL"
+}
+
+// User table
+Table User {
+  id            String [pk]
+  firstName     String [not null]
+  lastName      String [not null]
+  email         String [unique, not null]
+  hashedPassword String [not null]
+  role          String [not null]
+  createdAt     DateTime [not null]
+  lastLogin     DateTime [not null]
+  startDate     DateTime
+  graduationDate DateTime
+  updatedAt     DateTime [not null]
+  enumber       string [unique, not null]
+}
+
+// Course table
+Table Course {
+  courseId         String [pk]
+  courseName       String [not null]
+  courseNumber     String [not null]
+  departmentId     String [not null]
+  startDate        DateTime
+  endDate          DateTime
+  createdAt        DateTime [not null]
+  status           String [not null]
+}
+
+// StudentCourse table
+Table UserCourse {
+  enumber         String [not null]
+  courseId        String [not null]
+  enrollmentDate  DateTime
+
+  indexes {
+    (enumber, courseId) [unique]
+  }
+}
+
+// Resource table
+Table Resource {
+  resourceId      String [pk]
+  resourceName    String [not null]
+  resourceType    String [not null]
+}
+
+// ResourceCourse table
+Table ResourceCourse {
+  resourceId      String [not null]
+  courseId        String [not null]
+
+  indexes {
+    (resourceId, courseId) [unique]
+  }
+}
+
+// Department table
+Table Department {
+  departmentId           String [pk]
+  departmentName         String [not null]
+  departmentAbbreviation String [not null]
+}
+
+// Relationships
+Ref: ResourceCourse.resourceId > Resource.resourceId
+Ref: ResourceCourse.courseId > Course.courseId
+Ref: Course.departmentId > Department.departmentId
+Ref: User.enumber > UserCourse.enumber
+Ref: Course.courseId > UserCourse.courseId

@@ -15,11 +15,70 @@ datasource db {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
-  name      String
-  enumber   String   @unique
-  password  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id              String    @id
+  first_name      String
+  last_name       String
+  email           String    @unique
+  password        String
+  role            String
+  created_at      DateTime
+  last_login      DateTime
+  start_date      DateTime?
+  graduation_date DateTime?
+  updated_at      DateTime
+  enumber         String    @unique
+
+  courses UserCourse[]
+}
+
+model Course {
+  course_id     String    @id
+  course_name   String
+  course_number String
+  department_id String
+  start_date    DateTime?
+  end_date      DateTime?
+  created_at    DateTime
+  status        String
+
+  resources  ResourceCourse[]
+  users      UserCourse[]
+  department Department       @relation(fields: [department_id], references: [department_id])
+}
+
+model UserCourse {
+  enumber         String
+  course_id       String
+  enrollment_date DateTime?
+
+  user   User   @relation(fields: [enumber], references: [enumber])
+  course Course @relation(fields: [course_id], references: [course_id])
+
+  @@id([enumber, course_id])
+}
+
+model Resource {
+  resource_id   String @id
+  resource_name String
+  resource_type String
+
+  courses ResourceCourse[]
+}
+
+model ResourceCourse {
+  resource_id String
+  course_id   String
+
+  resource Resource @relation(fields: [resource_id], references: [resource_id])
+  course   Course   @relation(fields: [course_id], references: [course_id])
+
+  @@id([resource_id, course_id])
+}
+
+model Department {
+  department_id           String @id
+  department_name         String
+  department_abbreviation String
+
+  courses Course[]
 }

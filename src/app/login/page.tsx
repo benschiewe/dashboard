@@ -52,12 +52,12 @@ export default function Example() {
             </Button>
           </form>
           <p className="mt-6 text-sm text-gray-500 dark:text-gray-500">
-            Forgot your password?{" "}
+            {"Don't have an account? "}
             <a
               href="#"
               className="font-medium text-blue-500 hover:text-blue-600 dark:text-blue-500 dark:hover:text-blue-600"
             >
-              Reset password
+              Register now
             </a>
           </p>
         </div>

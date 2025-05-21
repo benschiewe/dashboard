@@ -2,6 +2,7 @@ import { db } from "@/lib/db"
 import { PrismaAdapter } from "@next-auth/prisma-adapter"
 import { compare } from "bcrypt"
 import { NextAuthOptions } from "next-auth"
+import { JWT } from "next-auth/jwt" // Import the extended JWT type
 import CredentialsProvider from "next-auth/providers/credentials"
 
 export const authOptions: NextAuthOptions = {
@@ -36,8 +37,8 @@ export const authOptions: NextAuthOptions = {
 
         return {
           id: `${existingUser.id}`,
-          name: existingUser.name,
           email: existingUser.email,
+          role: existingUser.role,
         }
       },
     }),
@@ -48,5 +49,24 @@ export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(db),
   session: {
     strategy: "jwt",
+  },
+  callbacks: {
+    async jwt({ token, user }: { token: JWT; user?: any }) {
+      if (user) {
+        token.id = user.id // Add user ID to the token
+        token.email = user.email // Add user email to the token
+        token.role = user.role // Add user role to the token
+        token.iat = Math.floor(Date.now() / 1000) // Set issued at timestamp
+        token.exp = Math.floor(Date.now() / 1000) + 60 * 60 * 24 // Set expiration timestamp (1 day)
+      }
+      return token
+    },
+
+    async session({ session, token }: { session: any; token: JWT }) {
+      session.user.id = token.id // Add user ID to the session
+      session.user.email = token.email // Add user email to the session
+      session.user.role = token.role // Add user role to the session
+      return session
+    },
   },
 }

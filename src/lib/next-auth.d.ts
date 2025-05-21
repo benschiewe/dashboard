@@ -1,5 +1,7 @@
 import "next-auth"
 
+type Role = "ADMIN" | "PROFESSOR" | "USER" | "GUEST"
+
 declare module "next-auth" {
   interface User {
     id: string

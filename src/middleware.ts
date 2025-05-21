@@ -1,9 +1,6 @@
 import { getToken } from "next-auth/jwt"
 import { NextRequest, NextResponse } from "next/server"
 
-// Define role hierarchy
-type Role = "ADMIN" | "PROFESSOR" | "USER" | "GUEST"
-
 // Helper function to check if a user's role has sufficient permissions
 function hasPermission(userRole: Role, requiredRole: Role): boolean {
   const roleHierarchy: Record<Role, number> = {
@@ -44,7 +41,7 @@ export async function middleware(req: NextRequest) {
   }
 
   // Professor+ routes (both professors and admins can access)
-  if (path.startsWith("/settings") && !hasPermission(userRole, "PROFESSOR")) {
+  if (path.startsWith("/settings") && !hasPermission(userRole, "USER")) {
     console.log(
       "Access denied: User role",
       userRole,

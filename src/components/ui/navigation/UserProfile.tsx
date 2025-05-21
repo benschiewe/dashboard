@@ -3,9 +3,9 @@
 import { Button } from "@/components/Button"
 import { cx, focusRing } from "@/lib/utils"
 import { RiMore2Fill, RiLoginCircleLine } from "@remixicon/react"
-import { useEffect, useState } from "react"
+import { useEffect } from "react"
 import { DropdownUserProfile } from "./DropdownUserProfile"
-import type { UserProfile } from "@/lib/user"
+import { useAuth } from "@/components/AuthProvider"
 
 // Default user in case we can't fetch from the database
 const defaultUser = {
@@ -17,36 +17,15 @@ const defaultUser = {
 }
 
 export const UserProfileDesktop = () => {
-  const [user, setUser] = useState<UserProfile>(defaultUser)
-  const [isSignedIn, setIsSignedIn] = useState<boolean>(false)
-  const [isLoading, setIsLoading] = useState<boolean>(true)
+  const { user, isSignedIn, isLoading, refreshUserData } = useAuth()
 
+  const fullName =
+    user?.firstName + (user?.lastName ? ` ${user.lastName}` : "") || "Guest"
+
+  // Refresh user data when component mounts
   useEffect(() => {
-    // Fetch user data
-    const fetchUserData = async () => {
-      try {
-        setIsLoading(true)
-        const response = await fetch("/api/user/profile")
-
-        if (response.ok) {
-          const data = await response.json()
-          setIsSignedIn(data.isSignedIn)
-
-          if (data.isSignedIn && data.user) {
-            setUser(data.user)
-          }
-        }
-      } catch (error) {
-        console.error("Failed to fetch user profile:", error)
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    fetchUserData()
-  }, [])
-
-  const fullName = user.firstName + (user.lastName ? ` ${user.lastName}` : "")
+    refreshUserData()
+  }, [refreshUserData])
 
   // Show loading state
   if (isLoading) {
@@ -90,7 +69,7 @@ export const UserProfileDesktop = () => {
             className="flex size-8 shrink-0 items-center justify-center rounded-full border border-gray-300 bg-white text-xs text-gray-700 dark:border-gray-800 dark:bg-gray-950 dark:text-gray-300"
             aria-hidden="true"
           >
-            {user.initials}
+            {user?.initials || "?"}
           </span>
           <span>{fullName}</span>
         </span>
@@ -104,34 +83,12 @@ export const UserProfileDesktop = () => {
 }
 
 export const UserProfileMobile = () => {
-  const [user, setUser] = useState<UserProfile>(defaultUser)
-  const [isSignedIn, setIsSignedIn] = useState<boolean>(false)
-  const [isLoading, setIsLoading] = useState<boolean>(true)
+  const { user, isSignedIn, isLoading, refreshUserData } = useAuth()
 
+  // Refresh user data when component mounts
   useEffect(() => {
-    // Fetch user data
-    const fetchUserData = async () => {
-      try {
-        setIsLoading(true)
-        const response = await fetch("/api/user/profile")
-
-        if (response.ok) {
-          const data = await response.json()
-          setIsSignedIn(data.isSignedIn)
-
-          if (data.isSignedIn && data.user) {
-            setUser(data.user)
-          }
-        }
-      } catch (error) {
-        console.error("Failed to fetch user profile:", error)
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    fetchUserData()
-  }, [])
+    refreshUserData()
+  }, [refreshUserData])
 
   // Show loading state
   if (isLoading) {
@@ -171,7 +128,7 @@ export const UserProfileMobile = () => {
           className="flex size-7 shrink-0 items-center justify-center rounded-full border border-gray-300 bg-white text-xs text-gray-700 dark:border-gray-800 dark:bg-gray-950 dark:text-gray-300"
           aria-hidden="true"
         >
-          {user.initials}
+          {user?.initials || "?"}
         </span>
       </Button>
     </DropdownUserProfile>

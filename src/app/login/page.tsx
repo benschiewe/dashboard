@@ -10,8 +10,33 @@ import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
+import { useAuth } from "@/components/AuthProvider"
 
 export default function SignInPage() {
+  const { refreshUserData } = useAuth()
+
+  const onSubmit = async (data: z.infer<typeof loginSchema>) => {
+    setIsLoading(true)
+    try {
+      const result = await signIn("credentials", {
+        email: data.email,
+        password: data.password,
+        redirect: false,
+      })
+
+      if (result?.error) {
+        setLoginError("Incorrect username or password")
+      } else {
+        setLoginError(null)
+        await refreshUserData() // Refresh auth state
+        await router.push("/")
+      }
+    } catch (error) {
+      // Error handling...
+    } finally {
+      setIsLoading(false)
+    }
+  }
   const router = useRouter()
   const [loginError, setLoginError] = useState<string | null>(null) // State to track login error
   const [isLoading, setIsLoading] = useState<boolean>(false) // State to track loading state
@@ -26,29 +51,6 @@ export default function SignInPage() {
       password: "",
     },
   })
-
-  const onSubmit = async (data: z.infer<typeof loginSchema>) => {
-    setIsLoading(true) // Set loading state to true
-    try {
-      const result = await signIn("credentials", {
-        email: data.email,
-        password: data.password,
-        redirect: false,
-      })
-
-      if (result?.error) {
-        setLoginError("Incorrect username or password") // Set login error
-      } else {
-        setLoginError(null) // Clear login error on success
-        await router.push("/") // Redirect to home page on success
-      }
-    } catch (error) {
-      console.error("Login error:", error)
-      setLoginError("An unexpected error occurred. Please try again.")
-    } finally {
-      setIsLoading(false) // Reset loading state
-    }
-  }
 
   return (
     <>

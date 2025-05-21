@@ -19,9 +19,14 @@ import {
   RiComputerLine,
   RiMoonLine,
   RiSunLine,
+  RiLogoutBoxRLine,
+  RiUser3Line,
 } from "@remixicon/react"
 import { useTheme } from "next-themes"
+import { signOut } from "next-auth/react"
 import * as React from "react"
+import type { UserProfile } from "@/lib/user"
+import { useAuth } from "@/components/AuthProvider"
 
 export type DropdownUserProfileProps = {
   children: React.ReactNode
@@ -33,20 +38,44 @@ export function DropdownUserProfile({
   align = "start",
 }: DropdownUserProfileProps) {
   const [mounted, setMounted] = React.useState(false)
+  const [userEmail, setUserEmail] = React.useState<string>("Loading...")
   const { theme, setTheme } = useTheme()
+  const [isSigningOut, setIsSigningOut] = React.useState(false)
+
   React.useEffect(() => {
     setMounted(true)
+  }, [])
+
+  // Fetch user email
+  React.useEffect(() => {
+    const fetchUserEmail = async () => {
+      try {
+        const response = await fetch("/api/user/profile")
+
+        if (response.ok) {
+          const data = await response.json()
+          if (data.isSignedIn && data.user && data.user.email) {
+            setUserEmail(data.user.email)
+          }
+        }
+      } catch (error) {
+        console.error("Failed to fetch user email:", error)
+      }
+    }
+
+    fetchUserEmail()
   }, [])
 
   if (!mounted) {
     return null
   }
+
   return (
     <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>{children}</DropdownMenuTrigger>
         <DropdownMenuContent align={align}>
-          <DropdownMenuLabel>emma.stone@acme.com</DropdownMenuLabel>
+          <DropdownMenuLabel>{userEmail}</DropdownMenuLabel>
           <DropdownMenuGroup>
             <DropdownMenuSubMenu>
               <DropdownMenuSubMenuTrigger>Theme</DropdownMenuSubMenuTrigger>
@@ -94,11 +123,11 @@ export function DropdownUserProfile({
           <DropdownMenuSeparator />
           <DropdownMenuGroup>
             <DropdownMenuItem>
-              Changelog
-              <RiArrowRightUpLine
-                className="mb-1 ml-1 size-2.5 shrink-0 text-gray-500"
+              <RiUser3Line
+                className="mr-2 size-4 shrink-0"
                 aria-hidden="true"
               />
+              Profile Settings
             </DropdownMenuItem>
             <DropdownMenuItem>
               Documentation
@@ -107,17 +136,22 @@ export function DropdownUserProfile({
                 aria-hidden="true"
               />
             </DropdownMenuItem>
-            <DropdownMenuItem>
-              Join Slack community
-              <RiArrowRightUpLine
-                className="mb-1 ml-1 size-2.5 shrink-0 text-gray-500"
-                aria-hidden="true"
-              />
-            </DropdownMenuItem>
           </DropdownMenuGroup>
           <DropdownMenuSeparator />
           <DropdownMenuGroup>
-            <DropdownMenuItem>Sign out</DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={async () => {
+                setIsSigningOut(true)
+                await signOut({ callbackUrl: "/login" })
+              }}
+              disabled={isSigningOut}
+            >
+              <RiLogoutBoxRLine
+                className="mr-2 size-4 shrink-0"
+                aria-hidden="true"
+              />
+              {isSigningOut ? "Signing out..." : "Sign out"}
+            </DropdownMenuItem>
           </DropdownMenuGroup>
         </DropdownMenuContent>
       </DropdownMenu>

@@ -6,14 +6,23 @@ export async function GET() {
     const user = await getCurrentUser()
 
     if (!user) {
-      return NextResponse.json({ message: "User not found" }, { status: 404 })
+      return NextResponse.json({
+        isSignedIn: false,
+        user: null,
+      })
     }
 
-    return NextResponse.json(user)
+    return NextResponse.json({
+      isSignedIn: true,
+      user: user,
+    })
   } catch (error) {
     console.error("Error fetching user profile:", error)
     return NextResponse.json(
-      { message: "Internal server error" },
+      {
+        isSignedIn: false,
+        user: null,
+      },
       { status: 500 },
     )
   }

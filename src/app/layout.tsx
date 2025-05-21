@@ -3,6 +3,7 @@ import { ThemeProvider } from "next-themes"
 import { Inter } from "next/font/google"
 import "./globals.css"
 import { siteConfig } from "./siteConfig"
+import { AuthProvider } from "@/components/AuthProvider"
 
 import { Sidebar } from "@/components/ui/navigation/Sidebar"
 
@@ -49,10 +50,12 @@ export default function RootLayout({
         suppressHydrationWarning
       >
         <div className="mx-auto max-w-screen-2xl">
-          <ThemeProvider defaultTheme="system" attribute="class">
-            <Sidebar />
-            <main className="lg:pl-72">{children}</main>
-          </ThemeProvider>
+          <AuthProvider>
+            <ThemeProvider defaultTheme="system" attribute="class">
+              <Sidebar />
+              <main className="lg:pl-72">{children}</main>
+            </ThemeProvider>
+          </AuthProvider>
         </div>
       </body>
     </html>

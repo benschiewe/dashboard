@@ -70,3 +70,14 @@ export const authOptions: NextAuthOptions = {
     },
   },
 }
+
+export function hasPermission(userRole: Role, requiredRole: Role): boolean {
+  const roleHierarchy: Record<Role, number> = {
+    ADMIN: 30, // Highest permission level
+    PROFESSOR: 20, // Professor has more permissions than user
+    USER: 10, // Basic user permissions
+    GUEST: 0, // Lowest permissions
+  }
+
+  return roleHierarchy[userRole] >= roleHierarchy[requiredRole]
+}

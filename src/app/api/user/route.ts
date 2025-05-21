@@ -10,7 +10,7 @@ export async function POST(req: Request) {
     const body = await req.json()
     console.log("Request body:", body) // Debug: Log the parsed request body
 
-    const { name, email, enumber, password } =
+    const { firstName, lastName, email, enumber, password } =
       registerSchemaNoConfirm.parse(body)
 
     console.log("Checking if email exists:", email) // Debug: Log email check
@@ -46,10 +46,15 @@ export async function POST(req: Request) {
     console.log("Creating new user in the database") // Debug: Log before creating user
     const newUser = await db.user.create({
       data: {
-        name,
+        first_name: firstName,
+        last_name: lastName,
         email,
         enumber,
         password: hashedPassword,
+        role: "USER", // Default role
+        created_at: new Date(),
+        updated_at: new Date(),
+        last_login: new Date(),
       },
     })
     console.log("New user created:", newUser) // Debug: Log the created user

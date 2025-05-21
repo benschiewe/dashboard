@@ -76,19 +76,36 @@ export default function Example() {
             noValidate
           >
             <div>
-              <Label htmlFor="name" className="font-medium">
-                Name
+              <Label htmlFor="firstName" className="font-medium">
+                First Name
               </Label>
               <Input
                 type="text"
-                id="name"
-                {...register("name")}
-                placeholder="Name"
+                id="firstName"
+                {...register("firstName")}
+                placeholder="First Name"
                 className="mt-2"
               />
-              {errors.name && (
+              {errors.firstName && (
                 <p className="mt-1 text-sm text-red-500">
-                  {errors.name.message}
+                  {errors.firstName.message}
+                </p>
+              )}
+            </div>
+            <div>
+              <Label htmlFor="lastName" className="font-medium">
+                Last Name
+              </Label>
+              <Input
+                type="text"
+                id="lastName"
+                {...register("lastName")}
+                placeholder="Last Name"
+                className="mt-2"
+              />
+              {errors.lastName && (
+                <p className="mt-1 text-sm text-red-500">
+                  {errors.lastName.message}
                 </p>
               )}
             </div>

@@ -9,12 +9,14 @@ import {
   ReactNode,
   useCallback,
 } from "react"
+import { signOut as nextAuthSignOut } from "next-auth/react"
 
 interface AuthContextType {
   user: UserProfile | null
   isSignedIn: boolean
   isLoading: boolean
   refreshUserData: () => Promise<void>
+  signOut: (callbackUrl?: string) => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -22,6 +24,7 @@ const AuthContext = createContext<AuthContextType>({
   isSignedIn: false,
   isLoading: true,
   refreshUserData: async () => {},
+  signOut: async () => {},
 })
 
 export const useAuth = () => useContext(AuthContext)
@@ -74,6 +77,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setRefreshCount((prev) => prev + 1)
   }, [])
 
+  // Handle sign out
+  const signOut = useCallback(async (callbackUrl = "/login") => {
+    try {
+      // First update our local state
+      setIsLoading(true)
+
+      // Then call NextAuth's signOut
+      await nextAuthSignOut({
+        callbackUrl,
+        redirect: true,
+      })
+
+      // Update local state (though this might not run due to the redirect)
+      setUser(null)
+      setIsSignedIn(false)
+    } catch (error) {
+      console.error("Error signing out:", error)
+    } finally {
+      setIsLoading(false)
+    }
+  }, [])
+
   return (
     <AuthContext.Provider
       value={{
@@ -81,6 +106,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isSignedIn,
         isLoading,
         refreshUserData,
+        signOut,
       }}
     >
       {children}

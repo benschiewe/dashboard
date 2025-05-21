@@ -23,9 +23,7 @@ import {
   RiUser3Line,
 } from "@remixicon/react"
 import { useTheme } from "next-themes"
-import { signOut } from "next-auth/react"
 import * as React from "react"
-import type { UserProfile } from "@/lib/user"
 import { useAuth } from "@/components/AuthProvider"
 
 export type DropdownUserProfileProps = {
@@ -37,38 +35,26 @@ export function DropdownUserProfile({
   children,
   align = "start",
 }: DropdownUserProfileProps) {
+  // Theme handling
   const [mounted, setMounted] = React.useState(false)
-  const [userEmail, setUserEmail] = React.useState<string>("Loading...")
   const { theme, setTheme } = useTheme()
+
+  // Auth state
+  const { user, signOut, isLoading } = useAuth()
   const [isSigningOut, setIsSigningOut] = React.useState(false)
 
+  // Mount effect for theme
   React.useEffect(() => {
     setMounted(true)
   }, [])
 
-  // Fetch user email
-  React.useEffect(() => {
-    const fetchUserEmail = async () => {
-      try {
-        const response = await fetch("/api/user/profile")
-
-        if (response.ok) {
-          const data = await response.json()
-          if (data.isSignedIn && data.user && data.user.email) {
-            setUserEmail(data.user.email)
-          }
-        }
-      } catch (error) {
-        console.error("Failed to fetch user email:", error)
-      }
-    }
-
-    fetchUserEmail()
-  }, [])
-
+  // Don't render menu if theme isn't loaded yet
   if (!mounted) {
     return null
   }
+
+  // Get the email from auth context
+  const userEmail = user?.email || "Loading..."
 
   return (
     <>
@@ -142,9 +128,9 @@ export function DropdownUserProfile({
             <DropdownMenuItem
               onClick={async () => {
                 setIsSigningOut(true)
-                await signOut({ callbackUrl: "/login" })
+                await signOut("/login") // Use signOut from auth context
               }}
-              disabled={isSigningOut}
+              disabled={isSigningOut || isLoading}
             >
               <RiLogoutBoxRLine
                 className="mr-2 size-4 shrink-0"

@@ -192,7 +192,7 @@ export default function General() {
   useEffect(() => {
     async function fetchUserData() {
       try {
-        const response = await fetch("/api/user")
+        const response = await fetch("/api/me")
         if (!response.ok) {
           throw new Error("Failed to fetch user data")
         }

@@ -102,17 +102,22 @@ export async function POST(req: Request) {
 
 export async function PUT(req: NextRequest) {
   try {
-    // Get the current user
+    // Get the current user with ID included
     const user = await getCurrentUser()
+    console.log("Retrieved user:", JSON.stringify(user, null, 2))
 
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    // Parse the request body
-    const body = await req.json()
+    // Check if the ID exists
+    if (!user.id) {
+      console.error("User ID is undefined", user)
+      return NextResponse.json({ error: "User ID is missing" }, { status: 500 })
+    }
 
-    // Validate the update data
+    // Parse and validate the request body
+    const body = await req.json()
     const validationResult = userUpdateSchema.safeParse(body)
     if (!validationResult.success) {
       return NextResponse.json(
@@ -139,10 +144,10 @@ export async function PUT(req: NextRequest) {
 
     // Special handling for password updates
     if (updateData.password) {
-      // Verify current password
-      const dbUser = await prisma.user.findUnique({
+      // Use the dedicated function for password checking
+      const dbUser = await db.user.findUnique({
         where: { id: user.id },
-        select: { password: true }, // Only select the password field
+        select: { password: true },
       })
 
       if (!dbUser) {
@@ -150,7 +155,7 @@ export async function PUT(req: NextRequest) {
       }
 
       // Compare passwords
-      const passwordMatch = await bcrypt.compare(
+      const passwordMatch = await compare(
         updateData.currentPassword as string,
         dbUser.password,
       )
@@ -163,7 +168,7 @@ export async function PUT(req: NextRequest) {
       }
 
       // Hash the new password
-      userUpdate.password = await bcrypt.hash(updateData.password, 10)
+      userUpdate.password = await hash(updateData.password, 10)
     }
 
     // If there's nothing to update, return early
@@ -175,25 +180,41 @@ export async function PUT(req: NextRequest) {
     }
 
     // Update the user
-    const updatedUser = await prisma.user.update({
+    const updatedUser = await db.user.update({
       where: { id: user.id },
       data: userUpdate,
       select: {
         id: true,
         email: true,
-        firstName: true,
-        lastName: true,
+        first_name: true,
+        last_name: true,
         role: true,
-        createdAt: true,
-        updatedAt: true,
-        // Never return password in response
+        enumber: true,
+        created_at: true,
+        last_login: true,
+        updated_at: true,
       },
     })
+
+    // Format the response to match our UserProfile type
+    const formattedUser = {
+      id: updatedUser.id,
+      firstName: updatedUser.first_name,
+      lastName: updatedUser.last_name,
+      email: updatedUser.email,
+      role: updatedUser.role.toLowerCase(),
+      enumber: updatedUser.enumber,
+      createdAt: updatedUser.created_at,
+      lastLogin: updatedUser.last_login,
+      updatedAt: updatedUser.updated_at,
+      // Calculate initials on the fly
+      initials: `${updatedUser.first_name.charAt(0)}${updatedUser.last_name.charAt(0)}`,
+    }
 
     return NextResponse.json(
       {
         message: "User updated successfully",
-        user: updatedUser,
+        user: formattedUser,
       },
       { status: 200 },
     )

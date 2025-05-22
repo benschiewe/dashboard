@@ -13,11 +13,103 @@ import {
 } from "@/components/Select"
 import { roles } from "@/data/data"
 import { Course } from "@/types/course"
-import { RiExternalLinkLine } from "@remixicon/react"
+import {
+  passwordUpdateSchema,
+  type PasswordUpdateFormData,
+} from "@/lib/validation/changePassword"
+import { RiExternalLinkLine, RiEyeLine, RiEyeOffLine } from "@remixicon/react"
 import { useEffect, useState } from "react"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
 
 export default function General() {
   const [courses, setCourses] = useState<Course[]>([]) // State to store fetched courses
+  const [showOldPassword, setShowOldPassword] = useState(false)
+  const [showNewPassword, setShowNewPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [passwordUpdateSuccess, setPasswordUpdateSuccess] = useState(false)
+  const [passwordUpdateError, setPasswordUpdateError] = useState<string | null>(
+    null,
+  )
+  // New state for server-side validation errors
+  const [serverErrors, setServerErrors] = useState<Record<string, string>>({})
+
+  // Password update form setup with React Hook Form
+  const {
+    register,
+    handleSubmit,
+    reset,
+    setError,
+    formState: { errors, isSubmitting },
+  } = useForm<PasswordUpdateFormData>({
+    resolver: zodResolver(passwordUpdateSchema),
+    defaultValues: {
+      currentPassword: "",
+      newPassword: "",
+      confirmPassword: "",
+    },
+  })
+
+  // Password update submission handler
+  const onPasswordUpdate = async (data: PasswordUpdateFormData) => {
+    try {
+      // Clear previous states
+      setPasswordUpdateError(null)
+      setPasswordUpdateSuccess(false)
+      setServerErrors({})
+
+      // Send password update request to your API
+      const response = await fetch("/api/user", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          currentPassword: data.currentPassword,
+          password: data.newPassword,
+        }),
+      })
+
+      const responseData = await response.json()
+
+      if (!response.ok) {
+        // Handle different types of errors
+        if (response.status === 400) {
+          // Field-specific validation errors
+          if (responseData.error === "Current password is incorrect") {
+            // Set error directly on the field
+            setError("currentPassword", {
+              type: "server",
+              message: "Current password is incorrect",
+            })
+            return
+          }
+
+          // Handle other validation errors if needed
+          if (
+            responseData.details &&
+            typeof responseData.details === "object"
+          ) {
+            // Set server validation errors from response details
+            setServerErrors(responseData.details)
+            return
+          }
+        }
+
+        // Generic error handling for other error types
+        throw new Error(responseData.error || "Failed to update password")
+      }
+
+      // Success handling
+      setPasswordUpdateSuccess(true)
+      reset() // Reset form fields
+    } catch (error) {
+      console.error("Error updating password:", error)
+      setPasswordUpdateError(
+        error instanceof Error ? error.message : "An unknown error occurred",
+      )
+    }
+  }
 
   useEffect(() => {
     async function fetchCourses() {
@@ -49,7 +141,7 @@ export default function General() {
                   Personal information
                 </h2>
                 <p className="mt-1 text-sm leading-6 text-gray-500">
-                  Manage your personal information and role.
+                  Manage your personal information.
                 </p>
               </div>
               <div className="md:col-span-2">
@@ -93,48 +185,6 @@ export default function General() {
                       className="mt-2"
                     />
                   </div>
-                  <div className="col-span-full sm:col-span-3">
-                    <Label htmlFor="year" className="font-medium">
-                      Birth year
-                    </Label>
-                    <Input
-                      autoComplete="off"
-                      id="birthyear"
-                      name="year"
-                      type="number"
-                      placeholder="1994"
-                      enableStepper={false}
-                      className="mt-2"
-                      min="1900"
-                      max={new Date().getFullYear()}
-                      step="1"
-                    />
-                  </div>
-                  <div className="col-span-full sm:col-span-3">
-                    <Label htmlFor="email" className="font-medium">
-                      Role
-                    </Label>
-                    <Select defaultValue="member">
-                      <SelectTrigger
-                        name="role"
-                        id="role"
-                        className="mt-2"
-                        disabled
-                      >
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {roles.map((role) => (
-                          <SelectItem key={role.value} value={role.value}>
-                            {role.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <p className="mt-2 text-xs text-gray-500">
-                      Roles can only be changed by system admin.
-                    </p>
-                  </div>
                   <div className="col-span-full mt-6 flex justify-end">
                     <Button type="submit">Save settings</Button>
                   </div>
@@ -144,6 +194,197 @@ export default function General() {
           </form>
         </section>
         <Divider />
+
+        <section aria-labelledby="password-update">
+          <form onSubmit={handleSubmit(onPasswordUpdate)} noValidate>
+            <div className="grid grid-cols-1 gap-x-14 gap-y-8 md:grid-cols-3">
+              <div>
+                <h2
+                  id="password-update"
+                  className="scroll-mt-10 font-semibold text-gray-900 dark:text-gray-50"
+                >
+                  Update password
+                </h2>
+                <p className="mt-1 text-sm leading-6 text-gray-500">
+                  Change your account password.
+                </p>
+              </div>
+              <div className="md:col-span-2">
+                <div className="grid grid-cols-1 gap-4">
+                  {/* Success message */}
+                  {passwordUpdateSuccess && (
+                    <div className="col-span-full rounded-md bg-green-50 p-4 dark:bg-green-900/20">
+                      <div className="flex">
+                        <div className="flex-shrink-0">
+                          <svg
+                            className="h-5 w-5 text-green-400"
+                            viewBox="0 0 20 20"
+                            fill="currentColor"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                              clipRule="evenodd"
+                            />
+                          </svg>
+                        </div>
+                        <div className="ml-3">
+                          <p className="text-sm font-medium text-green-800 dark:text-green-200">
+                            Password updated successfully!
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Generic error message - only for system/unexpected errors */}
+                  {passwordUpdateError && (
+                    <div className="col-span-full rounded-md bg-red-50 p-4 dark:bg-red-900/20">
+                      <div className="flex">
+                        <div className="flex-shrink-0">
+                          <svg
+                            className="h-5 w-5 text-red-400"
+                            viewBox="0 0 20 20"
+                            fill="currentColor"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                              clipRule="evenodd"
+                            />
+                          </svg>
+                        </div>
+                        <div className="ml-3">
+                          <p className="text-sm font-medium text-red-800 dark:text-red-200">
+                            {passwordUpdateError}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="col-span-full">
+                    <Label htmlFor="currentPassword" className="font-medium">
+                      Current password
+                    </Label>
+                    <div className="relative mt-2">
+                      <Input
+                        {...register("currentPassword")}
+                        type={showOldPassword ? "text" : "password"}
+                        id="currentPassword"
+                        autoComplete="current-password"
+                        className={`pr-10 ${
+                          errors.currentPassword || serverErrors.currentPassword
+                            ? "border-red-500"
+                            : ""
+                        }`}
+                      />
+                      <button
+                        type="button"
+                        className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-500"
+                        onClick={() => setShowOldPassword(!showOldPassword)}
+                        tabIndex={-1}
+                      >
+                        {showOldPassword ? (
+                          <RiEyeOffLine className="size-4" />
+                        ) : (
+                          <RiEyeLine className="size-4" />
+                        )}
+                      </button>
+                    </div>
+                    {(errors.currentPassword ||
+                      serverErrors.currentPassword) && (
+                      <p className="mt-1 text-sm text-red-500">
+                        {errors.currentPassword?.message ||
+                          serverErrors.currentPassword}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="col-span-full">
+                    <Label htmlFor="newPassword" className="font-medium">
+                      New password
+                    </Label>
+                    <div className="relative mt-2">
+                      <Input
+                        {...register("newPassword")}
+                        type={showNewPassword ? "text" : "password"}
+                        id="newPassword"
+                        autoComplete="new-password"
+                        className={`pr-10 ${
+                          errors.newPassword || serverErrors.password
+                            ? "border-red-500"
+                            : ""
+                        }`}
+                      />
+                      <button
+                        type="button"
+                        className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-500"
+                        onClick={() => setShowNewPassword(!showNewPassword)}
+                        tabIndex={-1}
+                      >
+                        {showNewPassword ? (
+                          <RiEyeOffLine className="size-4" />
+                        ) : (
+                          <RiEyeLine className="size-4" />
+                        )}
+                      </button>
+                    </div>
+                    {(errors.newPassword || serverErrors.password) && (
+                      <p className="mt-1 text-sm text-red-500">
+                        {errors.newPassword?.message || serverErrors.password}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="col-span-full">
+                    <Label htmlFor="confirmPassword" className="font-medium">
+                      Confirm new password
+                    </Label>
+                    <div className="relative mt-2">
+                      <Input
+                        {...register("confirmPassword")}
+                        type={showConfirmPassword ? "text" : "password"}
+                        id="confirmPassword"
+                        autoComplete="new-password"
+                        className={`pr-10 ${
+                          errors.confirmPassword ? "border-red-500" : ""
+                        }`}
+                      />
+                      <button
+                        type="button"
+                        className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-500"
+                        onClick={() =>
+                          setShowConfirmPassword(!showConfirmPassword)
+                        }
+                        tabIndex={-1}
+                      >
+                        {showConfirmPassword ? (
+                          <RiEyeOffLine className="size-4" />
+                        ) : (
+                          <RiEyeLine className="size-4" />
+                        )}
+                      </button>
+                    </div>
+                    {errors.confirmPassword && (
+                      <p className="mt-1 text-sm text-red-500">
+                        {errors.confirmPassword.message}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="col-span-full mt-6 flex justify-end">
+                    <Button type="submit" disabled={isSubmitting}>
+                      {isSubmitting ? "Updating..." : "Update password"}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </form>
+        </section>
+        <Divider />
+
         <section aria-labelledby="manage-courses">
           <form>
             <div className="grid grid-cols-1 gap-x-14 gap-y-8 md:grid-cols-3">
@@ -160,11 +401,11 @@ export default function General() {
               </div>
               <div className="md:col-span-2">
                 <div className="relative mt-2">
-                  <ul className="max-h-48 overflow-auto py-1 border border-gray-200 rounded-md bg-white shadow-lg dark:bg-gray-900 dark:border-gray-800">
+                  <ul className="max-h-48 overflow-auto rounded-md border border-gray-200 bg-white py-1 shadow-lg dark:border-gray-800 dark:bg-gray-900">
                     {courses.map((course) => (
                       <li
                         key={course.course_id}
-                        className="flex items-center gap-2 px-4 py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
+                        className="flex cursor-pointer items-center gap-2 px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-800"
                       >
                         <input
                           type="checkbox"
@@ -184,82 +425,7 @@ export default function General() {
           </form>
         </section>
         <Divider />
-        <section aria-labelledby="danger-zone">
-          <form>
-            <div className="grid grid-cols-1 gap-x-14 gap-y-8 md:grid-cols-3">
-              <div>
-                <h2
-                  id="danger-zone"
-                  className="scroll-mt-10 font-semibold text-gray-900 dark:text-gray-50"
-                >
-                  Danger zone
-                </h2>
-                <p className="mt-1 text-sm leading-6 text-gray-500">
-                  Manage general workspace. Contact system admin for more
-                  information.{" "}
-                  <a
-                    href="#"
-                    className="inline-flex items-center gap-1 text-indigo-600 hover:underline hover:underline-offset-4 dark:text-indigo-400"
-                  >
-                    Learn more
-                    <RiExternalLinkLine
-                      className="size-4 shrink-0"
-                      aria-hidden="true"
-                    />
-                  </a>
-                </p>
-              </div>
-              <div className="space-y-6 md:col-span-2">
-                <Card className="p-4">
-                  <div className="flex items-start justify-between gap-10">
-                    <div>
-                      <h4 className="text-sm font-medium text-gray-900 dark:text-gray-50">
-                        Leave workspace
-                      </h4>
-                      <p className="mt-2 text-sm leading-6 text-gray-500">
-                        Revoke your access to this team. Other people you have
-                        added to the workspace will remain.
-                      </p>
-                    </div>
-                    <Button
-                      variant="secondary"
-                      className="text-red-600 dark:text-red-500"
-                    >
-                      Leave
-                    </Button>
-                  </div>
-                </Card>
-                <Card className="overflow-hidden p-0">
-                  <div className="flex items-start justify-between gap-10 p-4">
-                    <div>
-                      <h4 className="text-sm font-medium text-gray-400 dark:text-gray-600">
-                        Delete workspace
-                      </h4>
-                      <p className="mt-2 text-sm leading-6 text-gray-400 dark:text-gray-600">
-                        Revoke your access to this team. Other people you have
-                        added to the workspace will remain.
-                      </p>
-                    </div>
-                    <Button
-                      variant="secondary"
-                      disabled
-                      className="whitespace-nowrap text-red-600 disabled:text-red-300 disabled:opacity-50 dark:text-red-500 disabled:dark:text-red-700"
-                    >
-                      Delete workspace
-                    </Button>
-                  </div>
-                  <div className="border-t border-gray-200 bg-gray-50 p-4 dark:border-gray-900 dark:bg-gray-900">
-                    <p className="text-sm text-gray-500">
-                      You cannot delete the workspace because you are not the
-                      system admin.
-                    </p>
-                  </div>
-                </Card>
-              </div>
-            </div>
-          </form>
-        </section>
-      </div >
+      </div>
     </>
   )
 }

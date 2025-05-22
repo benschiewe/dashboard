@@ -29,6 +29,84 @@ const userUpdateSchema = z
     },
   )
 
+// New GET function to retrieve all users
+export async function GET(req: NextRequest) {
+  try {
+    // Get current user for authorization
+    const currentUser = await getCurrentUser()
+
+    if (!currentUser) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    // Only allow admins and professors to view all users
+    // Adjust this according to your role-based access control needs
+    if (currentUser.role !== "admin" && currentUser.role !== "professor") {
+      return NextResponse.json(
+        { error: "Insufficient permissions to view all users" },
+        { status: 403 },
+      )
+    }
+
+    // Parse query parameters for filtering/pagination
+    const { searchParams } = new URL(req.url)
+    const limit = parseInt(searchParams.get("limit") || "100", 10)
+    const offset = parseInt(searchParams.get("offset") || "0", 10)
+    const role = searchParams.get("role")
+
+    // Build filter conditions
+    const whereClause: any = {}
+
+    if (role) {
+      whereClause.role = role.toUpperCase() // Assuming role is stored in uppercase in DB
+    }
+
+    // Fetch users from database
+    const users = await db.user.findMany({
+      where: whereClause,
+      select: {
+        id: true,
+        email: true,
+        first_name: true,
+        last_name: true,
+        role: true,
+        enumber: true,
+        created_at: true,
+        last_login: true,
+        updated_at: true,
+      },
+      orderBy: {
+        last_name: "asc", // Order by last name ascending
+      },
+      skip: offset,
+      take: limit,
+    })
+
+    // Format the results to be more frontend-friendly
+    const formattedUsers = users.map((user) => ({
+      id: user.id,
+      firstName: user.first_name,
+      lastName: user.last_name,
+      email: user.email,
+      role: user.role.toLowerCase(), // Convert role to lowercase for frontend consistency
+      enumber: user.enumber,
+      createdAt: user.created_at,
+      lastLogin: user.last_login,
+      updatedAt: user.updated_at,
+      // Calculate initials from first and last name
+      initials: `${user.first_name.charAt(0)}${user.last_name.charAt(0)}`,
+    }))
+
+    return NextResponse.json(formattedUsers)
+  } catch (error) {
+    console.error("Error fetching users:", error)
+    return NextResponse.json(
+      { error: "Failed to fetch users" },
+      { status: 500 },
+    )
+  }
+}
+
 export async function POST(req: Request) {
   try {
     console.log("Received POST request") // Debug: Log when the request is received

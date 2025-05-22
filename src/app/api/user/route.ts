@@ -1,8 +1,8 @@
 import { db } from "@/lib/db"
-import { registerSchemaNoConfirm } from "@/lib/validation/register"
-import { hash, compare } from "bcrypt"
-import { NextResponse } from "next/server"
 import { getCurrentUser } from "@/lib/user"
+import { registerSchemaNoConfirm } from "@/lib/validation/register"
+import { compare, hash } from "bcrypt"
+import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
 
 const userUpdateSchema = z
@@ -13,6 +13,7 @@ const userUpdateSchema = z
     // Only accept the current password when updating the password
     currentPassword: z.string().optional(),
     password: z.string().optional(),
+    enumber: z.string().optional(),
   })
   .refine(
     (data) => {

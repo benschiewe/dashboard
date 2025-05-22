@@ -1,9 +1,8 @@
 export type Usage = {
-  owner: string
+  resourceName: string
+  course: string
+  professor: string
   status: string
-  costs: number
-  region: string
-  stability: number
   lastEdited: string
 }
 

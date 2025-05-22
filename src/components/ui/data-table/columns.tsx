@@ -6,6 +6,7 @@ import { statuses } from "@/data/data"
 import { Usage } from "@/data/schema"
 import { ColumnDef, createColumnHelper } from "@tanstack/react-table"
 import { DataTableColumnHeader } from "./DataTableColumnHeader"
+import { DataTableRowActions } from "./DataTableRowActions"
 
 const columnHelper = createColumnHelper<Usage>()
 
@@ -40,7 +41,7 @@ export const columns = [
       displayName: "Select",
     },
   }),
-  columnHelper.accessor("owner", {
+  columnHelper.accessor("resourceName", {
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Resource" />
     ),
@@ -48,25 +49,10 @@ export const columns = [
     enableHiding: false,
     meta: {
       className: "text-left",
-      displayName: "Owner",
+      displayName: "resourceName",
     },
   }),
-
-
-  columnHelper.accessor("region", {
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Course" />
-    ),
-    enableSorting: false,
-    meta: {
-      className: "text-left",
-      displayName: "Region",
-    },
-    filterFn: "arrIncludesSome",
-  }),
-
-
-  columnHelper.accessor("owner", {
+  columnHelper.accessor("professor", {
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Professor" />
     ),
@@ -74,14 +60,24 @@ export const columns = [
     enableHiding: false,
     meta: {
       className: "text-left",
-      displayName: "Owner",
+      displayName: "professor",
     },
   }),
 
-
+  columnHelper.accessor("course", {
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Course" />
+    ),
+    enableSorting: false,
+    meta: {
+      className: "text-left",
+      displayName: "course",
+    },
+    filterFn: "arrIncludesSome",
+  }),
   columnHelper.accessor("status", {
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Course Status " />
+      <DataTableColumnHeader column={column} title="Status" />
     ),
     enableSorting: true,
     meta: {
@@ -104,8 +100,6 @@ export const columns = [
       )
     },
   }),
-
-
   columnHelper.accessor("lastEdited", {
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Last edited" />

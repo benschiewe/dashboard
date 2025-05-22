@@ -11,17 +11,16 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/Dialog"
-import { Label } from "@/components/Label"
 import { Input } from "@/components/Input"
-import { ModalAddUser } from "@/components/ui/settings/ModalAddUser"
+import { Label } from "@/components/Label"
 import { users } from "@/data/data"
+import { registerSchema } from "@/lib/validation/register"
 import { Course } from "@/types/course"
+import { zodResolver } from "@hookform/resolvers/zod"
 import { RiAddLine, RiCloseLine, RiMore2Fill } from "@remixicon/react"
 import { useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
-import { registerSchema } from "@/lib/validation/register"
 
 // Define the type for the form data
 type RegisterFormData = z.infer<typeof registerSchema>
@@ -29,7 +28,7 @@ type RegisterFormData = z.infer<typeof registerSchema>
 export default function Users() {
   const [dialogUser, setDialogUser] = useState<string | null>(null)
   const [userCourses, setUserCourses] = useState<Record<string, string[]>>(
-    Object.fromEntries(users.map((u) => [u.name, u.courses || []])),
+    Object.fromEntries(users.map((u) => [u.name, []])),
   )
   const [courses, setCourses] = useState<Course[]>([]) // State to store fetched courses
   const [isAddUserDialogOpen, setIsAddUserDialogOpen] = useState(false)
@@ -307,7 +306,7 @@ export default function Users() {
                 <DialogFooter className="mt-6">
                   {/* Cancel button */}
                   <DialogClose asChild>
-                    <Button type="button" variant="outline">
+                    <Button type="button" variant="secondary">
                       Cancel
                     </Button>
                   </DialogClose>

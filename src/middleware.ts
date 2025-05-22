@@ -1,6 +1,9 @@
 import { getToken } from "next-auth/jwt"
 import { NextRequest, NextResponse } from "next/server"
 
+// Define the Role type
+type Role = "ADMIN" | "PROFESSOR" | "USER" | "GUEST"
+
 // Helper function to check if a user's role has sufficient permissions
 function hasPermission(userRole: Role, requiredRole: Role): boolean {
   const roleHierarchy: Record<Role, number> = {
@@ -40,8 +43,25 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(new URL("/no-access", req.url))
   }
 
-  // Professor+ routes (both professors and admins can access)
-  if (path.startsWith("/settings") && !hasPermission(userRole, "USER")) {
+  // Professor+ routes for settings/users (professors and admins can access)
+  if (
+    path.startsWith("/settings/users") &&
+    !hasPermission(userRole, "PROFESSOR")
+  ) {
+    console.log(
+      "Access denied: User role",
+      userRole,
+      "tried to access settings/users path",
+    )
+    return NextResponse.redirect(new URL("/no-access", req.url))
+  }
+
+  // Regular settings routes (all users can access except for settings/users)
+  if (
+    path.startsWith("/settings") &&
+    !path.startsWith("/settings/users") &&
+    !hasPermission(userRole, "USER")
+  ) {
     console.log(
       "Access denied: User role",
       userRole,
@@ -51,11 +71,14 @@ export async function middleware(req: NextRequest) {
   }
 
   // User+ routes (users, professors, and admins can access)
-  if (path.startsWith("/overview") && !hasPermission(userRole, "USER")) {
+  if (
+    (path.startsWith("/overview") || path.startsWith("/details")) &&
+    !hasPermission(userRole, "USER")
+  ) {
     console.log(
       "Access denied: User role",
       userRole,
-      "tried to access overview path",
+      `tried to access ${path.startsWith("/overview") ? "overview" : "details"} path`,
     )
     return NextResponse.redirect(new URL("/no-access", req.url))
   }
@@ -74,5 +97,7 @@ export const config = {
     "/settings/:path*",
     "/overview",
     "/overview/:path*",
+    "/details",
+    "/details/:path*", // Added to match all paths under /details/
   ],
 }

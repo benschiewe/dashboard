@@ -1,18 +1,8 @@
 "use client"
 import { Button } from "@/components/Button"
-import { Card } from "@/components/Card"
 import { Divider } from "@/components/Divider"
 import { Input } from "@/components/Input"
 import { Label } from "@/components/Label"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/Select"
-import { roles } from "@/data/data"
-import { Course } from "@/types/course"
 import {
   passwordUpdateSchema,
   type PasswordUpdateFormData,
@@ -21,10 +11,11 @@ import {
   profileUpdateSchema,
   type ProfileUpdateFormData,
 } from "@/lib/validation/updateUser"
-import { RiExternalLinkLine, RiEyeLine, RiEyeOffLine } from "@remixicon/react"
+import { Course } from "@/types/course"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { RiEyeLine, RiEyeOffLine } from "@remixicon/react"
 import { useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
 
 export default function General() {
   const [courses, setCourses] = useState<Course[]>([]) // State to store fetched courses

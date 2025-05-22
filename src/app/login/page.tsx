@@ -118,7 +118,7 @@ export default function SignInPage() {
           <p className="mt-6 text-sm text-gray-500 dark:text-gray-500">
             {"Don't have an account? "}
             <a
-              href="#"
+              href="/register"
               className="font-medium text-blue-500 hover:text-blue-600 dark:text-blue-500 dark:hover:text-blue-600"
             >
               Register now

@@ -24,7 +24,7 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(new URL("/login", req.url))
   }
 
-  const userRole = (token.role as Role) || "GUEST"
+  const userRole = (token.role as Role) || "PROFESSOR"
   console.log("User role:", userRole)
 
   // Define role-based access control with path checking

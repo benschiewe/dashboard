@@ -1,4 +1,4 @@
-import { Usage } from "./schema"
+import { Usage } from "./schema";
 
 export const roles: { value: string; label: string }[] = [
   {
@@ -92,50 +92,58 @@ export const users: {
   initials: string
   email: string
   role: string
+  courses: string[]
 }[] = [
-  {
-    name: "Emma Stone",
-    initials: "ES",
-    email: "a.stone@gmail.com",
-    role: "viewer",
-  },
-  {
-    name: "Alissia McCalister",
-    initials: "AM",
-    email: "a.stone@gmail.com",
-    role: "viewer",
-  },
-  {
-    name: "Emily Luisa Bernacle",
-    initials: "EB",
-    email: "e.luis.bernacle@gmail.com",
-    role: "member",
-  },
-  {
-    name: "Aaron Wave",
-    initials: "AW",
-    email: "a.flow@acme.com",
-    role: "contributor",
-  },
-  {
-    name: "Thomas Palstein",
-    initials: "TP",
-    email: "t.palstein@acme.com",
-    role: "viewer",
-  },
-  {
-    name: "Sarah Johnson",
-    initials: "SJ",
-    email: "s.johnson@gmail.com",
-    role: "admin",
-  },
-  {
-    name: "Megan Katherina Brown",
-    initials: "MB",
-    email: "m.lovelybrown@gmail.com",
-    role: "contributor",
-  },
-]
+    {
+      name: "Emma Stone",
+      initials: "ES",
+      email: "a.stone@gmail.com",
+      role: "viewer",
+      courses: []
+    },
+    {
+      name: "Alissia McCalister",
+      initials: "AM",
+      email: "a.stone@gmail.com",
+      role: "viewer",
+      courses: []
+    },
+    {
+      name: "Emily Luisa Bernacle",
+      initials: "EB",
+      email: "e.luis.bernacle@gmail.com",
+      role: "member",
+      courses: []
+    },
+    {
+      name: "Aaron Wave",
+      initials: "AW",
+      email: "a.flow@acme.com",
+      role: "contributor",
+      courses: []
+    },
+    {
+      name: "Thomas Palstein",
+      initials: "TP",
+      email: "t.palstein@acme.com",
+      role: "viewer",
+      courses: []
+    },
+    {
+      name: "Sarah Johnson",
+      initials: "SJ",
+      email: "s.johnson@gmail.com",
+      role: "admin",
+      courses: []
+    },
+    {
+      name: "Megan Katherina Brown",
+      initials: "MB",
+      email: "m.lovelybrown@gmail.com",
+      role: "contributor",
+      courses: []
+    },
+  ]
 
 export const invitedUsers: {
   initials: string
@@ -143,19 +151,19 @@ export const invitedUsers: {
   role: string
   expires: number
 }[] = [
-  {
-    initials: "LP",
-    email: "lydia.posh@gmail.com",
-    role: "viewer",
-    expires: 12,
-  },
-  {
-    initials: "AW",
-    email: "awidburg@bluewin.ch",
-    role: "viewer",
-    expires: 8,
-  },
-]
+    {
+      initials: "LP",
+      email: "lydia.posh@gmail.com",
+      role: "viewer",
+      expires: 12,
+    },
+    {
+      initials: "AW",
+      email: "awidburg@bluewin.ch",
+      role: "viewer",
+      expires: 8,
+    },
+  ]
 
 export const usage: Usage[] = [
   {

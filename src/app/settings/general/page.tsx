@@ -1,7 +1,6 @@
 "use client"
 import { Button } from "@/components/Button"
 import { Card } from "@/components/Card"
-import { Checkbox } from "@/components/Checkbox"
 import { Divider } from "@/components/Divider"
 import { Input } from "@/components/Input"
 import { Label } from "@/components/Label"
@@ -12,11 +11,30 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/Select"
-import { RiExternalLinkLine } from "@remixicon/react"
-
 import { roles } from "@/data/data"
+import { Course } from "@/types/course"
+import { RiExternalLinkLine } from "@remixicon/react"
+import { useEffect, useState } from "react"
 
 export default function General() {
+  const [courses, setCourses] = useState<Course[]>([]) // State to store fetched courses
+
+  useEffect(() => {
+    async function fetchCourses() {
+      try {
+        const response = await fetch("/api/courses")
+        if (!response.ok) {
+          throw new Error("Failed to fetch courses")
+        }
+        const data: Course[] = await response.json()
+        setCourses(data)
+      } catch (error) {
+        console.error("Error fetching courses:", error)
+      }
+    }
+    fetchCourses()
+  }, [])
+
   return (
     <>
       <div className="space-y-10">
@@ -126,90 +144,40 @@ export default function General() {
           </form>
         </section>
         <Divider />
-        <section aria-labelledby="notification-settings">
+        <section aria-labelledby="manage-courses">
           <form>
             <div className="grid grid-cols-1 gap-x-14 gap-y-8 md:grid-cols-3">
               <div>
                 <h2
-                  id="notification-settings"
+                  id="manage-courses"
                   className="scroll-mt-10 font-semibold text-gray-900 dark:text-gray-50"
                 >
-                  Notification settings
+                  Manage courses
                 </h2>
                 <p className="mt-1 text-sm leading-6 text-gray-500">
-                  Configure the types of notifications you want to receive.
+                  Manage your courses.
                 </p>
               </div>
               <div className="md:col-span-2">
-                <fieldset>
-                  <legend className="text-sm font-medium text-gray-900 dark:text-gray-50">
-                    Team
-                  </legend>
-                  <p className="mt-1 text-sm leading-6 text-gray-500">
-                    Configure the types of team alerts you want to receive.
-                  </p>
-                  <ul
-                    role="list"
-                    className="mt-4 divide-y divide-gray-200 dark:divide-gray-800"
-                  >
-                    <li className="flex items-center gap-x-3 py-3">
-                      <Checkbox
-                        id="team-requests"
-                        name="team-requests"
-                        defaultChecked
-                      />
-                      <Label htmlFor="team-requests">Team join requests</Label>
-                    </li>
-                    <li className="flex items-center gap-x-3 py-3">
-                      <Checkbox id="team-activity-digest" />
-                      <Label htmlFor="team-activity-digest">
-                        Weekly team activity digest
-                      </Label>
-                    </li>
+                <div className="relative mt-2">
+                  <ul className="max-h-48 overflow-auto py-1 border border-gray-200 rounded-md bg-white shadow-lg dark:bg-gray-900 dark:border-gray-800">
+                    {courses.map((course) => (
+                      <li
+                        key={course.course_id}
+                        className="flex items-center gap-2 px-4 py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
+                      >
+                        <input
+                          type="checkbox"
+                          readOnly
+                          className="form-checkbox"
+                        />
+                        <span>
+                          {course.course_name} (
+                          {course.department.department_abbreviation})
+                        </span>
+                      </li>
+                    ))}
                   </ul>
-                </fieldset>
-                <fieldset className="mt-6">
-                  <legend className="text-sm font-medium text-gray-900 dark:text-gray-50">
-                    Usage
-                  </legend>
-                  <p className="mt-1 text-sm leading-6 text-gray-500">
-                    Configure the types of usage alerts you want to receive.
-                  </p>
-                  <ul
-                    role="list"
-                    className="mt-4 divide-y divide-gray-200 dark:divide-gray-800"
-                  >
-                    <li className="flex items-center gap-x-3 py-3">
-                      <Checkbox id="api-requests" name="api-requests" />
-                      <Label htmlFor="api-requests">API incidents</Label>
-                    </li>
-                    <li className="flex items-center gap-x-3 py-3">
-                      <Checkbox
-                        id="workspace-execution"
-                        name="workspace-execution"
-                      />
-                      <Label htmlFor="workspace-execution">
-                        Platform incidents
-                      </Label>
-                    </li>
-                    <li className="flex items-center gap-x-3 py-3">
-                      <Checkbox
-                        id="query-caching"
-                        name="query-caching"
-                        defaultChecked
-                      />
-                      <Label htmlFor="query-caching">
-                        Payment transactions
-                      </Label>
-                    </li>
-                    <li className="flex items-center gap-x-3 py-3">
-                      <Checkbox id="storage" name="storage" defaultChecked />
-                      <Label htmlFor="storage">User behavior</Label>
-                    </li>
-                  </ul>
-                </fieldset>
-                <div className="col-span-full mt-6 flex justify-end">
-                  <Button type="submit">Save settings</Button>
                 </div>
               </div>
             </div>
@@ -291,7 +259,7 @@ export default function General() {
             </div>
           </form>
         </section>
-      </div>
+      </div >
     </>
   )
 }

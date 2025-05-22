@@ -52,8 +52,6 @@ export const columns = [
       displayName: "resourceName",
     },
   }),
-
-
   columnHelper.accessor("professor", {
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Professor" />
@@ -77,7 +75,6 @@ export const columns = [
     },
     filterFn: "arrIncludesSome",
   }),
-
   columnHelper.accessor("status", {
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Status" />
@@ -103,7 +100,6 @@ export const columns = [
       )
     },
   }),
-
   columnHelper.accessor("lastEdited", {
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Last edited" />
@@ -113,16 +109,5 @@ export const columns = [
       className: "tabular-nums",
       displayName: "Last edited",
     },
-  }),
-  columnHelper.display({
-    id: "edit",
-    header: "Edit",
-    enableSorting: false,
-    enableHiding: false,
-    meta: {
-      className: "text-right",
-      displayName: "Edit",
-    },
-    cell: ({ row }) => <DataTableRowActions row={row} />,
   }),
 ] as ColumnDef<Usage>[]

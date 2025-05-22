@@ -129,17 +129,24 @@ export async function PUT(req: NextRequest) {
     const updateData = validationResult.data
 
     // Create a clean update object with only the fields to update
+    // Convert camelCase keys to snake_case for Prisma
     const userUpdate: Record<string, any> = {}
 
-    // Process normal fields (non-password)
-    for (const [key, value] of Object.entries(updateData)) {
-      if (
-        key !== "password" &&
-        key !== "currentPassword" &&
-        value !== undefined
-      ) {
-        userUpdate[key] = value
-      }
+    // Process normal fields (non-password) with proper field name mapping
+    if (updateData.firstName !== undefined) {
+      userUpdate.first_name = updateData.firstName
+    }
+
+    if (updateData.lastName !== undefined) {
+      userUpdate.last_name = updateData.lastName
+    }
+
+    if (updateData.email !== undefined) {
+      userUpdate.email = updateData.email
+    }
+
+    if (updateData.enumber !== undefined) {
+      userUpdate.enumber = updateData.enumber
     }
 
     // Special handling for password updates
@@ -171,6 +178,9 @@ export async function PUT(req: NextRequest) {
       userUpdate.password = await hash(updateData.password, 10)
     }
 
+    // Always update the updated_at timestamp
+    userUpdate.updated_at = new Date()
+
     // If there's nothing to update, return early
     if (Object.keys(userUpdate).length === 0) {
       return NextResponse.json(
@@ -178,6 +188,8 @@ export async function PUT(req: NextRequest) {
         { status: 200 },
       )
     }
+
+    console.log("Updating user with data:", userUpdate)
 
     // Update the user
     const updatedUser = await db.user.update({

@@ -56,9 +56,11 @@ model UserCourse {
 }
 
 model Resource {
-  resource_id   String @id
+  resource_id   String   @id
   resource_name String
   resource_type String
+  status        String
+  created_at    DateTime
 
   courses ResourceCourse[]
 }

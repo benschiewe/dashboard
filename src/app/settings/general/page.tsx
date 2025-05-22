@@ -17,6 +17,10 @@ import {
   passwordUpdateSchema,
   type PasswordUpdateFormData,
 } from "@/lib/validation/changePassword"
+import {
+  profileUpdateSchema,
+  type ProfileUpdateFormData,
+} from "@/lib/validation/updateUser"
 import { RiExternalLinkLine, RiEyeLine, RiEyeOffLine } from "@remixicon/react"
 import { useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
@@ -31,10 +35,31 @@ export default function General() {
   const [passwordUpdateError, setPasswordUpdateError] = useState<string | null>(
     null,
   )
-  // New state for server-side validation errors
+  // States for profile update
+  const [profileUpdateSuccess, setProfileUpdateSuccess] = useState(false)
+  const [profileUpdateError, setProfileUpdateError] = useState<string | null>(
+    null,
+  )
+  // State for server-side validation errors
   const [serverErrors, setServerErrors] = useState<Record<string, string>>({})
 
-  // Password update form setup with React Hook Form
+  // Profile update form setup with React Hook Form
+  const {
+    register: registerProfile,
+    handleSubmit: handleProfileSubmit,
+    reset: resetProfile,
+    formState: { errors: profileErrors, isSubmitting: isProfileSubmitting },
+  } = useForm<ProfileUpdateFormData>({
+    resolver: zodResolver(profileUpdateSchema),
+    defaultValues: {
+      firstName: "",
+      lastName: "",
+      email: "",
+      enumber: "",
+    },
+  })
+
+  // Password update form setup
   const {
     register,
     handleSubmit,
@@ -49,6 +74,58 @@ export default function General() {
       confirmPassword: "",
     },
   })
+
+  // Profile update submission handler
+  const onProfileUpdate = async (data: ProfileUpdateFormData) => {
+    try {
+      // Clear previous states
+      setProfileUpdateError(null)
+      setProfileUpdateSuccess(false)
+      setServerErrors({})
+
+      // Send profile update request to your API
+      const response = await fetch("/api/user", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          firstName: data.firstName,
+          lastName: data.lastName,
+          email: data.email,
+          enumber: data.enumber,
+        }),
+      })
+
+      const responseData = await response.json()
+
+      if (!response.ok) {
+        // Handle validation errors from the server
+        if (response.status === 400 && responseData.details) {
+          setServerErrors(responseData.details)
+          return
+        }
+
+        throw new Error(responseData.error || "Failed to update profile")
+      }
+
+      // Success handling
+      setProfileUpdateSuccess(true)
+
+      // Optional: Update form with the returned user data
+      // resetProfile({
+      //   firstName: responseData.user.firstName,
+      //   lastName: responseData.user.lastName,
+      //   email: responseData.user.email,
+      //   enumber: responseData.user.enumber,
+      // })
+    } catch (error) {
+      console.error("Error updating profile:", error)
+      setProfileUpdateError(
+        error instanceof Error ? error.message : "An unknown error occurred",
+      )
+    }
+  }
 
   // Password update submission handler
   const onPasswordUpdate = async (data: PasswordUpdateFormData) => {
@@ -111,7 +188,31 @@ export default function General() {
     }
   }
 
+  // Fetch user profile data on component mount
   useEffect(() => {
+    async function fetchUserData() {
+      try {
+        const response = await fetch("/api/user")
+        if (!response.ok) {
+          throw new Error("Failed to fetch user data")
+        }
+        const userData = await response.json()
+
+        // Populate the form with user data
+        resetProfile({
+          firstName: userData.firstName,
+          lastName: userData.lastName,
+          email: userData.email,
+          enumber: userData.enumber || "",
+        })
+      } catch (error) {
+        console.error("Error fetching user data:", error)
+      }
+    }
+
+    fetchUserData()
+
+    // Also fetch courses
     async function fetchCourses() {
       try {
         const response = await fetch("/api/courses")
@@ -125,13 +226,13 @@ export default function General() {
       }
     }
     fetchCourses()
-  }, [])
+  }, [resetProfile])
 
   return (
     <>
       <div className="space-y-10">
         <section aria-labelledby="personal-information">
-          <form>
+          <form onSubmit={handleProfileSubmit(onProfileUpdate)} noValidate>
             <div className="grid grid-cols-1 gap-x-14 gap-y-8 md:grid-cols-3">
               <div>
                 <h2
@@ -146,47 +247,142 @@ export default function General() {
               </div>
               <div className="md:col-span-2">
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-6">
+                  {/* Success message */}
+                  {profileUpdateSuccess && (
+                    <div className="col-span-full rounded-md bg-green-50 p-4 dark:bg-green-900/20">
+                      <div className="flex">
+                        <div className="flex-shrink-0">
+                          <svg
+                            className="h-5 w-5 text-green-400"
+                            viewBox="0 0 20 20"
+                            fill="currentColor"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                              clipRule="evenodd"
+                            />
+                          </svg>
+                        </div>
+                        <div className="ml-3">
+                          <p className="text-sm font-medium text-green-800 dark:text-green-200">
+                            Profile updated successfully!
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Generic error message */}
+                  {profileUpdateError && (
+                    <div className="col-span-full rounded-md bg-red-50 p-4 dark:bg-red-900/20">
+                      <div className="flex">
+                        <div className="flex-shrink-0">
+                          <svg
+                            className="h-5 w-5 text-red-400"
+                            viewBox="0 0 20 20"
+                            fill="currentColor"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                              clipRule="evenodd"
+                            />
+                          </svg>
+                        </div>
+                        <div className="ml-3">
+                          <p className="text-sm font-medium text-red-800 dark:text-red-200">
+                            {profileUpdateError}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   <div className="col-span-full sm:col-span-3">
-                    <Label htmlFor="first-name" className="font-medium">
+                    <Label htmlFor="firstName" className="font-medium">
                       First name
                     </Label>
                     <Input
+                      {...registerProfile("firstName")}
                       type="text"
-                      id="first-name"
-                      name="first-name"
+                      id="firstName"
                       autoComplete="given-name"
                       placeholder="Emma"
-                      className="mt-2"
+                      className={`mt-2 ${profileErrors.firstName ? "border-red-500" : ""}`}
                     />
+                    {profileErrors.firstName && (
+                      <p className="mt-1 text-sm text-red-500">
+                        {profileErrors.firstName.message}
+                      </p>
+                    )}
                   </div>
+
                   <div className="col-span-full sm:col-span-3">
-                    <Label htmlFor="last-name" className="font-medium">
+                    <Label htmlFor="lastName" className="font-medium">
                       Last name
                     </Label>
                     <Input
+                      {...registerProfile("lastName")}
                       type="text"
-                      id="last-name"
-                      name="last-name"
+                      id="lastName"
                       autoComplete="family-name"
                       placeholder="Stone"
-                      className="mt-2"
+                      className={`mt-2 ${profileErrors.lastName ? "border-red-500" : ""}`}
                     />
+                    {profileErrors.lastName && (
+                      <p className="mt-1 text-sm text-red-500">
+                        {profileErrors.lastName.message}
+                      </p>
+                    )}
                   </div>
-                  <div className="col-span-full">
+
+                  <div className="col-span-full sm:col-span-3">
                     <Label htmlFor="email" className="font-medium">
                       Email
                     </Label>
                     <Input
+                      {...registerProfile("email")}
                       type="email"
                       id="email"
-                      name="email"
                       autoComplete="email"
                       placeholder="emma@acme.com"
-                      className="mt-2"
+                      className={`mt-2 ${profileErrors.email ? "border-red-500" : ""}`}
                     />
+                    {profileErrors.email && (
+                      <p className="mt-1 text-sm text-red-500">
+                        {profileErrors.email.message}
+                      </p>
+                    )}
                   </div>
+
+                  <div className="col-span-full sm:col-span-3">
+                    <Label htmlFor="enumber" className="font-medium">
+                      E-Number
+                    </Label>
+                    <Input
+                      {...registerProfile("enumber")}
+                      type="text"
+                      id="enumber"
+                      autoComplete="off"
+                      placeholder="e1234567"
+                      className={`mt-2 ${profileErrors.enumber ? "border-red-500" : ""}`}
+                    />
+                    {profileErrors.enumber ? (
+                      <p className="mt-1 text-sm text-red-500">
+                        {profileErrors.enumber.message}
+                      </p>
+                    ) : (
+                      <p className="mt-1 text-xs text-gray-500">
+                        Format: e followed by 7 digits (e.g., e1234567)
+                      </p>
+                    )}
+                  </div>
+
                   <div className="col-span-full mt-6 flex justify-end">
-                    <Button type="submit">Save settings</Button>
+                    <Button type="submit" disabled={isProfileSubmitting}>
+                      {isProfileSubmitting ? "Saving..." : "Save settings"}
+                    </Button>
                   </div>
                 </div>
               </div>

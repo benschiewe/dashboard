@@ -58,9 +58,10 @@ model UserCourse {
 model Resource {
   resource_id   String   @id
   resource_name String
-  resource_type String
+  course_number String
+  professor     String
   status        String
-  created_at    DateTime
+  last_edited   DateTime
 
   courses ResourceCourse[]
 }
